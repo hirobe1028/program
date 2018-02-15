@@ -20,6 +20,8 @@
 #define W2 SIZE*5
 #define H2 SIZE*5
 
+#define ERR -1
+
 BYTE board[WIDTH][HEIGHT]={0};
 BYTE block[4][4]={0};
 POINT position={0,0};
@@ -75,15 +77,12 @@ void next_block(){
     for(int y=0; y<4; y++){
     	for(int x=0; x<4; x++){
             block[x][y] = next[x][y];
-	}
+    	}
     }
     position.x = 3;
     position.y = -3;
     create_block();
-
 }
-
-#define ERR -1
 
 int block_under(){
     for(int y=3; y>=0; y--){
@@ -118,14 +117,10 @@ int block_right(){
     return ERR;
 }
 
-#define LEFT 2
-#define RIGHT 4
-#define UNDER 8
-
 BOOL move_block(int move){
     int x,y,left,right,under;
     switch(move){
-        case LEFT:
+        case 0:
             left = block_left();
             if((position.x)+left <= 0){
                 return FALSE;
@@ -140,7 +135,7 @@ BOOL move_block(int move){
             }
             position.x--;
             return TRUE;
-        case RIGHT:
+        case 1:
             right = block_right();
             if((position.x)+right >= WIDTH-1){
                 return FALSE;
@@ -155,7 +150,7 @@ BOOL move_block(int move){
             }
             position.x++;
             return TRUE;
-        case UNDER:
+        case 2:
             under = block_under();
             if((position.y) + under >= HEIGHT-1){
                 return FALSE;
@@ -296,11 +291,11 @@ void draw(){
 
 bool is_overlaped(){
     for (int y=0; y <4; ++y) {
-	for (int x=0; x <4; ++x) {
-	    if( block[x][y] != 0 && board[x+position.x+1][y+position.y+1] != 0 ){
-		return TRUE;
+    	for (int x=0; x <4; ++x) {
+    		if( block[x][y] != 0 && board[x+position.x+1][y+position.y+1] != 0 ){
+    			return TRUE;
             }
-	}
+    	}
     }
     return FALSE;
 }
@@ -309,58 +304,63 @@ void game(){
     int key = 0;
     int keyDown = 0;
     for (int cnt=1; ; ++cnt) {
-	bool update = false;
-	if( cnt % INTERVAL == 0){
-    	    if(!move_block(UNDER)){
-		key = 0;
-	        box_bottom();
-        	down_block(delete_block());
-	        next_block();
+    	bool update = false;
+    	if( cnt % INTERVAL == 0){
+    	    if(!move_block(2)){
+    	    	key = 0;
+    	    	box_bottom();
+    	    	down_block(delete_block());
+    	    	next_block();
                 if( is_overlaped()){
-		    return;
+                	return;
                 }
-		continue;
-	    }
-	    update = true;
-	}
-	if(cnt % INTERVAL == 0){
-	    if(key == VK_LEFT){
-		if(move_block(LEFT)){
-	    	    update = true;
-         	}
-		key = 0;
-	    } else if( key == VK_RIGHT ) {
-                if( move_block(RIGHT) ) {
-		    update = true;
-		}
-		key = 0;
-	    }
-	}
-	if( cnt % INTERVAL == 0 ) {
-	    if( key == VK_SPACE ) {
-                if(turn_block()) {
-	    	    update = true;
-		    key = 0;
+                continue;
+    	    }
+    	    update = true;
+    	}
+    	if(cnt % INTERVAL == 0){
+    		if(key == VK_LEFT){
+    			if(move_block(0)){
+    				update = true;
+    			}
+    			key = 0;
+    		} else if(key == VK_RIGHT){
+    			if(move_block(1)){
+    				update = true;
+    			}
+    			key = 0;
+    		} else if(key == VK_DOWN){
+    			if(move_block(2)){
+    				update = true;
+    			}
+    			key = 0;
+    		}
+    	}
+    	if( cnt % INTERVAL == 0 ) {
+    		if( key == VK_SPACE ) {
+    			if(turn_block()) {
+    				update = true;
+    				key = 0;
                 }
-	    }
-	}
-	if( update ) {
-	    Sleep(100);
-	    clear();
-	    create_board();
-	    draw();
-	}
+    		}
+    	}
+    	if( update ) {
+    		Sleep(100);
+    		clear();
+    		create_board();
+    		draw();
+    	}
         if( !keyDown ) {
             if( isKeyPressed(VK_LEFT) ) {
-        	key = keyDown = VK_LEFT;
+            	key = keyDown = VK_LEFT;
             } else if( isKeyPressed(VK_RIGHT) ) {
                 key = keyDown = VK_RIGHT;
-	    } else if( isKeyPressed(VK_SPACE) ) {
-		key = keyDown = VK_SPACE;
-	    } else if( isKeyPressed(VK_DOWN) ) {
-		key = keyDown = VK_DOWN;
-	    }
-	} else {
+            } else if( isKeyPressed(VK_SPACE) ) {
+            	key = keyDown = VK_SPACE;
+            } else if( isKeyPressed(VK_DOWN) ) {
+            	key = keyDown = VK_DOWN;
+            }
+        } else {
             if( !isKeyPressed(keyDown) ){
                 keyDown = 0;
             }
